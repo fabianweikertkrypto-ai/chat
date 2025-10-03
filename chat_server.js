@@ -75,42 +75,26 @@ app.get('/chat/available-users/:walletAddress', async (req, res) => {
         const { walletAddress } = req.params;
         const userWallet = walletAddress.toLowerCase();
 
-        // Fetch data from main backend
-        const gamesResponse = await fetch('https://msi-tournament-backend.onrender.com/games');
-        if (!gamesResponse.ok) {
-            return res.status(500).json({ error: 'Failed to fetch tournament data' });
+        // Fetch all users from main backend
+        const usersResponse = await fetch('https://msi-tournament-backend.onrender.com/users/global');
+        if (!usersResponse.ok) {
+            return res.status(500).json({ error: 'Failed to fetch users data' });
         }
 
-        const gamesData = await gamesResponse.json();
-        const availableUsers = new Map();
-
-        // Find all users in same tournaments
-        Object.values(gamesData).forEach(game => {
-            if (game.tournaments) {
-                Object.values(game.tournaments).forEach(tournament => {
-                    const isParticipant = tournament.participants?.some(p => 
-                        p.walletAddress.toLowerCase() === userWallet
-                    );
-
-                    if (isParticipant && tournament.status !== 'finished') {
-                        tournament.participants.forEach(participant => {
-                            const pWallet = participant.walletAddress.toLowerCase();
-                            if (pWallet !== userWallet && !availableUsers.has(pWallet)) {
-                                availableUsers.set(pWallet, {
-                                    walletAddress: participant.walletAddress,
-                                    platformUsername: participant.platformUsername,
-                                    gamertags: participant.gamertags
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        const usersData = await usersResponse.json();
+        
+        // Filter out the requesting user
+        const availableUsers = usersData.users
+            .filter(user => user.walletAddress.toLowerCase() !== userWallet)
+            .map(user => ({
+                walletAddress: user.walletAddress,
+                platformUsername: user.platformUsername,
+                gamertags: user.gamertags
+            }));
 
         // Get unread message counts
         const messagesData = await readMessages();
-        const usersWithUnread = Array.from(availableUsers.values()).map(user => {
+        const usersWithUnread = availableUsers.map(user => {
             const convId = getConversationId(userWallet, user.walletAddress);
             const conversation = messagesData.conversations[convId];
             
@@ -126,6 +110,11 @@ app.get('/chat/available-users/:walletAddress', async (req, res) => {
                 unreadCount
             };
         });
+
+        // Sort by username
+        usersWithUnread.sort((a, b) => 
+            a.platformUsername.localeCompare(b.platformUsername)
+        );
 
         res.json({
             users: usersWithUnread,
