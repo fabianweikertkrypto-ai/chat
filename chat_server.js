@@ -18,7 +18,7 @@ const corsOptions = {
         'https://merry-klepon-890f17.netlify.app',
         'https://msigaminguniverse.com',
         'https://www.msigaminguniverse.com',  // www-Variante hinzugefügt
-        'https://chat-71oo.onrender.com'
+        'https://chat-11c8.onrender.com'
     ],
     credentials: true,
     optionsSuccessStatus: 200
