@@ -17,6 +17,7 @@ const corsOptions = {
         'http://127.0.0.1:5501',
         'https://merry-klepon-890f17.netlify.app',
         'https://msigaminguniverse.com',
+        'https://www.msigaminguniverse.com',  // www-Variante hinzugefügt
         'https://chat-71oo.onrender.com'
     ],
     credentials: true,
